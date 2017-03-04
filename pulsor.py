@@ -1,6 +1,14 @@
 import cv2
 import time
+import urllib
+from threading import Thread, RLock
 import numpy as np
+
+
+#def munch(cam):
+#    while(True):
+#        with lock:
+#            cam.grab()
 
 
 def get_subface_coord(fh_x, fh_y, fh_w, fh_h, face_rect):
@@ -34,7 +42,10 @@ def shift(detected, old_detected):
 def main():
     face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_alt.xml')
     eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
-    cam = cv2.VideoCapture(-1)
+    #lock = RLock()
+    cam = cv2.VideoCapture("http://192.168.179.16:8080")
+    #thread = Thread(target=munch, args=(cam, lock))
+    #thread.start()
     face_rect = [1, 1, 2, 2]
     times = list()
     data_buffer = list() 
@@ -43,9 +54,16 @@ def main():
     refreshc = 0
     historic_bpm = 0
     pulse_history = list()
+
     while(True):
         times.append(time.time() - t0)
+        #with lock:
         ret, frame = cam.read()
+
+        #for i in range(3):
+        #   cam.grab()
+        #_ret, frame = cam.retrieve()
+
         grayscale = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         img = frame
         faces = list(face_cascade.detectMultiScale(grayscale, 1.3, 5))
