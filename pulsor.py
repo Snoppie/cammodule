@@ -9,14 +9,14 @@ def get_subface_coord(fh_x, fh_y, fh_w, fh_h, face_rect):
                 	int(w * fh_w),
                 	int(h * fh_h)]
 
-def shift(detected):
+def shift(detected, old_detected):
   x, y, w, h = detected
   center = np.array([x + 0.5 * w, y + 0.5 * h])
-  newshift = np.linalg.norm(center - shift.last_center)
+  x, y, w, h = old_detected
+  last_center = np.array([x + 0.5 * w, y + 0.5 * h])
+  shift = np.linalg.norm(center - last_center)
 
-  shift.last_center = center
-  return newshift
-shift.last_center = np.array([0,0])
+  return shift
 
 def main():
 	face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_alt.xml')
@@ -35,7 +35,7 @@ def main():
                     # Sort faces
                     faces.sort(key=lambda a: a[-1] * a[-2])
 
-                    if shift(faces[-1]) > 10:
+                    if shift(faces[-1], face_rect) > 10:
                         face_rect = faces[-1]
 
 		(x,y,w,h) = face_rect
