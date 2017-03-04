@@ -1,4 +1,5 @@
 import cv2
+import time
 import numpy as np
 
 
@@ -35,7 +36,11 @@ def main():
     eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
     cam = cv2.VideoCapture(-1)
     face_rect = [1, 1, 2, 2]
+    times = list()
+    data_buffer = list() 
+    t0 = time.time()
     while(True):
+        times.append(time.time() - t0)
         ret, frame = cam.read()
         grayscale = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         img = frame
@@ -68,7 +73,46 @@ def main():
 
         # Here goes code to calculate the pulse
         vals = get_subface_means(forehead, frame)
-        cv2.putText(img, str(vals), (50, 50), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
+        data_buffer.append(vals)
+        L = len(data_buffer)
+        if L > 250:
+            data_buffer = data_buffer[-250:]
+            times = times[-250:]
+            L = 250
+
+        processed = np.array(data_buffer)
+        if L > 10:
+            fps = float(L) / (times[-1] - times[0])
+            even_times = np.linspace(times[0], times[-1], L)
+            interpolated = np.interp(even_times, times, processed) ##here
+            interpolated = np.hamming(L) * interpolated ##here
+            interpolated = interpolated - np.mean(interpolated) ##here
+            raw = np.fft.rfft(interpolated) ##here
+            fft = np.abs(raw) ##here
+            freqs = float(fps) / L * np.arange(L / 2 + 1) ##here
+            freqs = 60. * freqs ##here
+            idx = np.where((freqs > 50) & (freqs < 180)) ##here
+            pruned = fft[idx] ##here
+
+            pfreq = freqs[idx] ##here
+            freqs = pfreq ##here
+            fft = pruned   ##here
+            idx2 = np.argmax(pruned)  ##here
+            bpm = freqs[idx2]
+
+
+            cv2.putText(img, "fps: "+ str(fps), (50, 60), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
+            cv2.putText(img, "interp: "+ str(interpolated), (50, 70), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
+            cv2.putText(img, "raw: "+ str(raw), (50, 80), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
+            cv2.putText(img, "fft: "+ str(fft), (50, 90), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
+            cv2.putText(img, "freqs: "+ str(freqs), (50, 100), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
+            cv2.putText(img, "idx: "+ str(idx), (50, 110), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
+            cv2.putText(img, "pruned: "+ str(pruned), (50, 120), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
+            cv2.putText(img, "idx2: "+ str(idx2), (50, 130), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
+            cv2.putText(img, "POLS: "+ str(bpm), (50, 140), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
+
+
+        cv2.putText(img, "vals: "+ str(vals), (50, 50), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
 
         cv2.imshow("camera", img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
