@@ -9,7 +9,7 @@ def main():
 	while(True):
 		ret, frame = cam.read()
 		grayscale = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-		img = grayscale
+		img = frame
 
 		faces = face_cascade.detectMultiScale(grayscale, 1.3, 5)
 		for (x,y,w,h) in faces:
