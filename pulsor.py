@@ -112,6 +112,7 @@ def main():
             if refreshc >= 10:
                 bpm = np.mean(pulse_history)
                 historic_bpm = bpm
+                pulse_history = list()
                 refreshc = 0
             else:
                 bpm = historic_bpm
