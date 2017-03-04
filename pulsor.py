@@ -125,7 +125,8 @@ def main():
             cv2.putText(img, "idx: "+ str(idx), (50, 410), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
             cv2.putText(img, "pruned: "+ str(pruned), (50, 420), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
             cv2.putText(img, "idx2: "+ str(idx2), (50, 430), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
-            cv2.putText(img, "** -> PULS: "+ str(bpm), (50, 440), cv2.FONT_HERSHEY_PLAIN, 1.5, (10, 10, 250))
+            cv2.rectangle(img, (50,420), (500,440),(230,230,230), -1)
+            cv2.putText(img, "** -> PULS: "+ str(np.round(bpm, 2)), (50, 440), cv2.FONT_HERSHEY_PLAIN, 1.5, (10, 10, 250))
 
 
         cv2.imshow("camera", img)
