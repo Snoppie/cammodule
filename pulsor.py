@@ -39,6 +39,10 @@ def main():
     times = list()
     data_buffer = list() 
     t0 = time.time()
+    # loops since last refresh
+    refreshc = 0
+    historic_bpm = 0
+    pulse_history = list()
     while(True):
         times.append(time.time() - t0)
         ret, frame = cam.read()
@@ -101,18 +105,27 @@ def main():
             bpm = freqs[idx2]
 
 
-            cv2.putText(img, "fps: "+ str(fps), (50, 60), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
-            cv2.putText(img, "interp: "+ str(interpolated), (50, 70), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
-            cv2.putText(img, "raw: "+ str(raw), (50, 80), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
-            cv2.putText(img, "fft: "+ str(fft), (50, 90), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
-            cv2.putText(img, "freqs: "+ str(freqs), (50, 100), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
-            cv2.putText(img, "idx: "+ str(idx), (50, 110), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
-            cv2.putText(img, "pruned: "+ str(pruned), (50, 120), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
-            cv2.putText(img, "idx2: "+ str(idx2), (50, 130), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
-            cv2.putText(img, "POLS: "+ str(bpm), (50, 140), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
+            refreshc += 1
+            pulse_history.append(bpm)
 
 
-        cv2.putText(img, "vals: "+ str(vals), (50, 50), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
+            if refreshc >= 10:
+                bpm = np.mean(pulse_history)
+                historic_bpm = bpm
+                refreshc = 0
+            else:
+                bpm = historic_bpm
+
+            cv2.putText(img, "fps: "+ str(fps), (50, 360), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
+            cv2.putText(img, "interp: "+ str(interpolated), (50, 370), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
+            cv2.putText(img, "raw: "+ str(raw), (50, 380), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
+            cv2.putText(img, "fft: "+ str(fft), (50, 390), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
+            cv2.putText(img, "freqs: "+ str(freqs), (50, 400), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
+            cv2.putText(img, "idx: "+ str(idx), (50, 410), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
+            cv2.putText(img, "pruned: "+ str(pruned), (50, 420), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
+            cv2.putText(img, "idx2: "+ str(idx2), (50, 430), cv2.FONT_HERSHEY_PLAIN, 1, (100, 250, 100))
+            cv2.putText(img, "** -> PULS: "+ str(bpm), (50, 440), cv2.FONT_HERSHEY_PLAIN, 1.5, (10, 10, 250))
+
 
         cv2.imshow("camera", img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
