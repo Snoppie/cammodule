@@ -20,16 +20,14 @@ def get_subface_means(coord, frame):
     return (v1 + v2 + v3) / 3.
 
 
-def shift(detected):
-    x, y, w, h = detected
-    center = np.array([x + 0.5 * w, y + 0.5 * h])
-    newshift = np.linalg.norm(center - shift.last_center)
+def shift(detected, old_detected):
+  x, y, w, h = detected
+  center = np.array([x + 0.5 * w, y + 0.5 * h])
+  x, y, w, h = old_detected
+  last_center = np.array([x + 0.5 * w, y + 0.5 * h])
+  shift = np.linalg.norm(center - last_center)
 
-    shift.last_center = center
-    return newshift
-
-
-shift.last_center = np.array([0,0])
+  return shift
 
 
 def main():
@@ -50,7 +48,8 @@ def main():
                         # Sort faces
                         faces.sort(key=lambda a: a[-1] * a[-2])
 
-                        if shift(faces[-1]) > 10:
+
+                        if shift(faces[-1], face_rect) > 10:
                             face_rect = faces[-1]
 
         (x,y,w,h) = face_rect
