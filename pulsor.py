@@ -46,7 +46,7 @@ def main():
     refreshc = 0
     historic_bpm = 0
     pulse_history = list()
-    json_output = {"id": 0}
+    json_output = {"id": 0, "data":{}}
     session = Session()
     while(True):
         times.append(time.time() - t0)
@@ -119,8 +119,8 @@ def main():
                 historic_bpm = bpm
                 pulse_history = list()
                 refreshc = 0
-                json_output["bpm"] = bpm
-                json_output["face"] = len(faces) > 0
+                json_output["data"]["bpm"] = bpm
+                json_output["data"]["face"] = len(faces) > 0
                 session.post("http://ec2-54-93-71-88.eu-central-1.compute.amazonaws.com/update", data=json.dumps(json_output))
                     
             else:
