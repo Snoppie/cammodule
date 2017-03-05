@@ -121,7 +121,7 @@ def main():
                 refreshc = 0
                 json_output["data"]["bpm"] = bpm
                 json_output["data"]["face"] = len(faces) > 0
-                session.post("http://ec2-54-93-71-88.eu-central-1.compute.amazonaws.com/update", data=json.dumps(json_output))
+                session.post("http://ec2-54-93-71-88.eu-central-1.compute.amazonaws.com/update", json=json_output)
                     
             else:
                 bpm = historic_bpm
