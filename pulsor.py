@@ -1,14 +1,8 @@
 import cv2
 import time
-import urllib
-from threading import Thread, RLock
 import numpy as np
-
-
-#def munch(cam):
-#    while(True):
-#        with lock:
-#            cam.grab()
+from requests import Session
+import json
 
 
 def get_subface_coord(fh_x, fh_y, fh_w, fh_h, face_rect):
@@ -42,10 +36,8 @@ def shift(detected, old_detected):
 def main():
     face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_alt.xml')
     eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
-    #lock = RLock()
-    cam = cv2.VideoCapture("http://192.168.179.16:8080")
-    #thread = Thread(target=munch, args=(cam, lock))
-    #thread.start()
+    #cam = cv2.VideoCapture(-1)
+    cam = cv2.VideoCapture("http://localhost:1234")
     face_rect = [1, 1, 2, 2]
     times = list()
     data_buffer = list() 
@@ -54,16 +46,11 @@ def main():
     refreshc = 0
     historic_bpm = 0
     pulse_history = list()
-
+    json_output = {"id": 0}
+    session = Session()
     while(True):
         times.append(time.time() - t0)
-        #with lock:
         ret, frame = cam.read()
-
-        #for i in range(3):
-        #   cam.grab()
-        #_ret, frame = cam.retrieve()
-
         grayscale = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         img = frame
         faces = list(face_cascade.detectMultiScale(grayscale, 1.3, 5))
@@ -132,6 +119,10 @@ def main():
                 historic_bpm = bpm
                 pulse_history = list()
                 refreshc = 0
+                json_output["bpm"] = bpm
+                json_output["face"] = len(faces) > 0
+                session.post("http://ec2-54-93-71-88.eu-central-1.compute.amazonaws.com/update", data=json.dumps(json_output))
+                    
             else:
                 bpm = historic_bpm
 
@@ -147,9 +138,11 @@ def main():
             cv2.putText(img, "** -> PULS: "+ str(np.round(bpm, 2)), (50, 440), cv2.FONT_HERSHEY_PLAIN, 1.5, (10, 10, 250))
 
 
-        cv2.imshow("camera", img)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+        #cv2.imshow("camera", img)
+        #if cv2.waitKey(1) & 0xFF == ord('q'):
+        #    break
+        _, buf = cv2.imencode(".jpg", img, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
+        print(buf.tostring())
 
     cam.release()
     cv2.destroyAllWindows()
